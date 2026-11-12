@@ -1,0 +1,4 @@
+.claude/
+*.xlsx
+*.csv
+out/

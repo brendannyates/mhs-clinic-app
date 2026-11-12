@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.sharepoint.com; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex,nofollow">
+<title>OneDrive read test · MHS Clinic</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main class="page" style="max-width:900px;margin:0 auto">
+  <header class="top"><div><h1>OneDrive read test</h1>
+    <p class="sub">Checks whether this site can read a JSON file from OneDrive with your Microsoft sign-in. Use a test file with no patient data.</p></div></header>
+  <section class="card setup" style="max-width:none">
+    <label for="url" class="muted" style="font-size:13.5px">Share link to a .json file ("People in Mindful Health Solutions")</label>
+    <input id="url" autocomplete="off" spellcheck="false" style="display:block;width:100%;min-height:44px;margin-top:6px;padding:0 12px;border-radius:10px;border:0;background:var(--surface-3);box-shadow:inset 0 0 0 1px var(--surface-2);font:inherit;color:var(--ink)">
+    <div class="actions"><button class="btn primary" id="run">Run the test</button></div>
+    <p id="verdict" style="font-weight:600;color:var(--ink)"></p>
+  </section>
+  <section class="card" style="margin-top:16px;padding:8px 20px 16px"><table class="dir" id="out"><thead><tr><th>Try</th><th>Result</th><th>Detail</th></tr></thead><tbody></tbody></table></section>
+  <p class="note">Results stay on this page. Nothing is sent anywhere except the request to OneDrive itself. Browser: <span id="ua"></span>. This site: <span id="origin"></span>.</p>
+</main>
+<script src="js/probe.js"></script>
+</body>
+</html>
