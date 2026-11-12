@@ -1,6 +1,0 @@
-{
-  "clinics": [
-    { "slug": "castro", "config": "<share-url to /Clinic Apps/castro/config.json>" },
-    { "slug": "san-rafael", "config": "<share-url to /Clinic Apps/san-rafael/config.json>" }
-  ]
-}

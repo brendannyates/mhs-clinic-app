@@ -32,9 +32,8 @@
     ],
   };
 
-  const files = {
-    'demo:index': { clinics: [{ slug: 'demo-north', config: 'demo:config:north' }, { slug: 'demo-south', config: 'demo:config:south' }, { slug: 'demo-locked', config: 'demo:config:locked' }] },
-    'demo:config:north': {
+  const configs = {
+    'demo-north': {
       clinic: 'demo-north', displayName: 'Demo North', address: '100 Example Street, Suite 2, Sampletown, CA 90000',
       parking: 'Street parking on Example St. Garage entrance on 2nd Ave, validate at the front desk.',
       hours: 'Mon to Fri 7:30 to 17:00. Closed weekends.',
@@ -49,23 +48,37 @@
         { title: 'What to expect at your first TMS visit', url: 'https://example.com/tms-first', group: 'Patient resource' },
         { title: 'Release of information form', url: 'https://example.com/roi', group: 'Forms' },
       ],
-      outputs: { readiness: 'demo:readiness' }, flows: {}, secret: '', teamsChats: {},
+      teamsChats: {},
     },
-    'demo:config:south': {
+    'demo-south': {
       clinic: 'demo-south', displayName: 'Demo South', address: '200 Sample Avenue, Exampleville, CA 90001', parking: 'Lot behind the building.',
-      hours: 'Mon to Thu 8:00 to 16:30.', directory: [{ role: 'Front desk', name: 'Riley T.', ext: '201', teams: '' }], binder: [],
-      outputs: {}, flows: {}, secret: '', teamsChats: {},
+      hours: 'Mon to Thu 8:00 to 16:30.', directory: [{ role: 'Front desk', name: 'Riley T.', ext: '201', teams: '' }], binder: [], teamsChats: {},
     },
-    'demo:readiness': { generatedAt: new Date().toISOString(), clinic: 'demo-north', days },
   };
+  const readiness = { 'demo-north': { generatedAt: new Date().toISOString(), clinic: 'demo-north', days } };
 
+  // Stand-ins for the Auth and Read flows. Same request and answer shapes as the build sheet.
+  const CODE = '123456', RID = 'demo-req', TOKEN = 'demo-token';
+  let tries = 0;
+  const fail = (kind, status, body) => Promise.reject(new root.Data.FlowError(kind, `HTTP ${status}`, status, body));
+  const later = (v) => new Promise((r) => setTimeout(() => r(v), 250));
   root.Demo = {
-    read(url) {
-      return new Promise((resolve, reject) => setTimeout(() => {
-        if (url === 'demo:config:locked') return reject(new root.Data.ReadError('denied', 'HTTP 403', 403));
-        url in files ? resolve(JSON.parse(JSON.stringify(files[url]))) : reject(new root.Data.ReadError('denied', 'HTTP 404', 404));
-      }, 150));
+    code: CODE, requestId: RID, lastEmail: '',
+    call(b) {
+      if (b.action === 'start') { tries = 0; this.lastEmail = b.email; return later({ ok: true, requestId: RID, expiresAt: new Date(Date.now() + 6e5).toISOString() }); }
+      if (b.action === 'verify') {
+        if (b.requestId !== RID) return fail('signin', 401, { ok: false, reason: 'expired' });
+        if (tries >= 3) return fail('signin', 401, { ok: false, reason: 'locked' });
+        if (b.code !== CODE) { tries++; return fail('signin', 401, { ok: false, reason: tries >= 3 ? 'locked' : 'wrong', triesLeft: 3 - tries }); }
+        return later({ ok: true, token: TOKEN, name: 'Alex P.', email: this.lastEmail || 'demo@example.com', role: 'Ops', clinics: ['demo-north', 'demo-south'], expiresAt: new Date(Date.now() + 12 * 36e5).toISOString() });
+      }
+      if (b.action === 'read') {
+        if (b.token !== TOKEN) return fail('signin', 401, { ok: false, reason: 'session' });
+        if (!configs[b.clinic]) return fail('denied', 403, { ok: false, reason: 'clinic' });
+        const files = (b.files || []).map((f) => ({ name: f, content: f === 'config' ? configs[b.clinic] : f === 'readiness' ? (readiness[b.clinic] || null) : null }));
+        return later(JSON.parse(JSON.stringify({ ok: true, clinic: b.clinic, files })));
+      }
+      return fail('http', 400, { ok: false, reason: 'action' });
     },
-    indexUrl: 'demo:index',
   };
 })(self);

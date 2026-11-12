@@ -2,20 +2,22 @@
 
 Installable web app (PWA) for the clinic's daily surface. **This repo is the shell only**: HTML, JS, CSS, icons, manifest, service worker. No patient data, no flow URLs, no secrets. Demo mode (`?demo=1`) uses invented codes.
 
-- Data lives in OneDrive under `/Clinic Apps/<clinic>/`, shared "People in Mindful Health Solutions" only. The app reads it with the user's own Microsoft sign-in.
-- Writes (phase 2 on) go through Power Automate HTTP triggers. The app never writes a file.
+- Data lives in OneDrive under `/Clinic Apps/<clinic>/`. A page on github.io can't read OneDrive share links (CORS, confirmed 2026-11-12), so every read goes through the **Clinic App · Read** flow.
+- Sign-in: the **Clinic App · Auth** flow sends a one-time code to the person's own Teams (Workflows card with a one-tap Sign in button) and swaps it for a session token. Each read re-checks the person's row in `tblAppUsers`. Build sheet: `flows/clinic-app-sign-in.html` (regenerate with `node flows/build.js`).
+- Writes (phase 2 on) go through Power Automate HTTP triggers with the same token. The app never writes a file.
 - The service worker caches the shell files listed in `sw.js` and nothing else.
 
 ## Files
 
 | Path | What |
 |---|---|
-| `js/shell-config.js` | The share link to `/Clinic Apps/index.json`. The only setting in the repo. |
+| `js/shell-config.js` | The Auth and Read flow URLs. Public by design; the session token is the lock. |
 | `js/core.js` | Pure logic: counts, row flag, sort, LASFIR guard. |
-| `js/data.js` | Every read. Swap this if direct OneDrive reads are blocked. |
+| `js/data.js` | Every call to the flows. |
 | `js/app.js` | UI. |
-| `probe.html` | Tests whether this origin can read a OneDrive share link. Phase 1 gate. |
-| `templates/` | `config.json` and `index.json` templates. Fill and save in OneDrive, not here. |
+| `probe.html` | OneDrive direct-read test (result: blocked). Kept for reference. |
+| `templates/` | `config.json` template. Fill and save in OneDrive as `/Clinic Apps/<clinic>/config.json`, not here. |
+| `flows/` | Build sheet for the Auth and Read flows. |
 
 ## readiness.json (written per clinic by the appointment-readiness run)
 

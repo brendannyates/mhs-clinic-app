@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.sharepoint.com https://*.logic.azure.com https://*.powerplatform.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.logic.azure.com https://*.powerplatform.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#1E6B59">
 <title>MHS Clinic</title>
@@ -19,11 +19,13 @@
     <div class="brand">MHS Clinic</div>
     <div class="demo" id="demoBanner" hidden>Demo mode. Every code, MRN and name here is invented.</div>
     <div class="clinic" id="clinic">Loading clinics</div>
+    <div id="navWrap" class="navwrap" hidden>
     <button class="item" data-route="ops" id="navOps">Ops</button>
     <button class="item child" data-route="ops/readiness" id="navReadiness">Readiness <span class="count" id="readyCount" hidden></span></button>
     <button class="item" data-route="clinicians">Clinicians</button>
     <div class="gap"></div>
     <button class="item" data-route="binder">Binder</button>
+    </div>
     <div class="spacer"></div>
     <div class="signed" id="signed"></div>
     <div class="conn"><span class="cdot" id="connDot"></span><span id="connText">Not connected</span></div>
@@ -31,15 +33,6 @@
   <main class="page" id="page" tabindex="-1"></main>
 </div>
 
-<dialog id="actorDlg" aria-labelledby="actorTitle">
-  <form method="dialog" id="actorForm">
-    <h2 id="actorTitle">Who's using this?</h2>
-    <p>Your name labels changes you make, so others can see who made them. It isn't a sign-in.</p>
-    <label for="actorName">First name and last initial</label>
-    <input id="actorName" autocomplete="off" maxlength="40" required placeholder="Alex P.">
-    <button class="btn primary" type="submit">Save name</button>
-  </form>
-</dialog>
 <div class="toast" role="status" id="toast"></div>
 
 <script src="js/shell-config.js"></script>

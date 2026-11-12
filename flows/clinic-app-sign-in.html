@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Build sheet: MHS Clinic sign-in and reads</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F2F4F8; --surface:#FFFFFF; --ink:#1A1D26; --muted:#5C6373; --line:#D7DBE5;
+  --teams:#4F52B2; --dataop:#1E6F78; --control:#6B7280; --variable:#7A3E9D; --excel:#1D6F42; --http:#0F6CBD; --od:#0364B8;
+  --btn:#0F6CBD; --btn-ink:#FFFFFF; --code:#EEF1F6; --ok:#0E7A3E; --warn:#A8520A; --bad:#B42318;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --bg:#13151A; --surface:#1C1F26; --ink:#E6E8EE; --muted:#9AA1B2; --line:#2D323D;
+    --teams:#8F92EC; --dataop:#63B9C3; --control:#9AA1B2; --variable:#C18AE0; --excel:#4FBF7E; --http:#6FB6FF; --od:#6FB6FF;
+    --btn:#6FB6FF; --btn-ink:#0B1420; --code:#101217; --ok:#5FD08A; --warn:#F2A866; --bad:#F38B80;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+code,pre{font-family:ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+a{color:var(--btn)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 60px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-0.01em}
+h2{font-size:17px;font-weight:600;margin:34px 0 10px}
+h3{font-size:14.5px;font-weight:600;margin:22px 0 6px}
+.lede{color:var(--muted);margin:0 0 18px;max-width:76ch}
+.grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:30px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:1fr}}
+.cfg{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+@media (min-width:921px){.cfg{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto}}
+.cfg h2{margin:0 0 10px;font-size:16px}
+.cfg h3{margin:18px 0 6px}
+label.lbl{display:block;font-size:13px;color:var(--muted);margin:10px 0 3px}
+input[type=text],input[type=number],textarea{font:inherit;width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.hint{font-size:12.5px;color:var(--muted);margin:4px 0 0}
+.hint.warn{color:var(--warn)}
+.rules{font-size:13.5px;margin:4px 0 0;padding:10px 12px;background:var(--code);border-radius:6px}
+.rules p{margin:0 0 6px}.rules p:last-child{margin:0}
+.btn{font:inherit;font-size:13px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.p{background:var(--btn);color:var(--btn-ink);border-color:transparent}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--btn);outline-offset:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.flow{max-width:640px}
+.card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:8px;padding:14px 16px 12px}
+.card .card{margin:10px 0 4px 10px}
+.branch{margin:12px 0 0 10px;padding:8px 0 0 12px;border-left:2px dashed var(--line)}
+.branch > .bl{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.ch{display:flex;gap:12px;align-items:flex-start;margin-bottom:6px}
+.ico{flex:none;width:30px;height:30px;border-radius:6px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.kind{font-size:12.5px;color:var(--muted)}
+.title{font-weight:600;font-size:15.5px;line-height:1.3}
+.conn{font-size:12.5px;color:var(--muted)}
+.f{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:6px 12px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
+.f .l{color:var(--muted);font-size:13.5px}
+.f .v{font-size:14px;word-break:break-word}
+.f .v code,.note code,.after code,.hint code,.rules code,li code,p code{background:var(--code);padding:2px 6px;border-radius:4px;font-size:13px}
+@media (max-width:540px){.f{grid-template-columns:minmax(0,1fr) auto}.f .l{grid-column:1/-1;padding-bottom:0}}
+.note{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.note b,.after b{color:var(--ink);font-weight:600}
+.link{height:30px;width:2px;background:var(--line);margin:0 auto;position:relative}
+.link span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:14px;line-height:18px;text-align:center}
+.after{font-size:13.5px;color:var(--muted);margin:14px 0 0;max-width:70ch}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow:auto;font-size:12.5px;line-height:1.5;margin:6px 0 0;white-space:pre}
+.pre-wrap{position:relative}
+.pre-wrap .btn{position:absolute;top:10px;right:8px}
+details{margin-top:8px}
+summary{cursor:pointer;color:var(--muted);font-size:13.5px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;word-break:break-word}
+th{font-weight:600;background:var(--code)}
+.tbl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:14px}
+.tbl-head h3{margin:0}
+ul.check{padding-left:20px;margin:6px 0 0;max-width:72ch}
+ul.check li{margin:5px 0}
+.small{font-size:13px;color:var(--muted)}
+.decision{margin:10px 0 0;padding:10px 12px;border-radius:6px;border:1px solid var(--line);border-left:4px solid var(--ok);background:var(--surface);font-size:14px}
+.decision.warn{border-left-color:var(--warn)}
+.tc{max-width:420px;border:1px solid var(--line);border-left:4px solid var(--teams);border-radius:8px;padding:14px 16px;background:var(--surface)}
+.tc .t1{font-weight:600}.tc .t2{font:700 30px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.06em;margin:4px 0}
+.tc .t3{color:var(--muted);font-size:13.5px}
+.tc .ab{display:block;text-align:center;margin-top:10px;padding:8px;border:1px solid var(--line);border-radius:6px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Build sheet: MHS Clinic sign-in and reads</h1>
+  <div class="actions" style="margin:0">
+    <button class="btn" id="btnExport">Copy config</button>
+    <button class="btn" id="btnImportToggle">Load config</button>
+  </div>
+</header>
+<p class="lede">Two flows give the MHS Clinic app a real per-person sign-in without an Entra app registration. <b>Clinic App · Auth</b> sends a one-time code to the person's own Teams (a Workflows card with the code and a one-tap <b>Sign in</b> button) and swaps a correct code for a session token. <b>Clinic App · Read</b> answers with clinic files only for a live token, and re-checks the person's row on every call, so turning someone off takes effect on their next refresh. The app calls both as text/plain POSTs, and each Response sets Access-Control-Allow-Origin: the same pattern as the IVK eligibility feed.</p>
+<div id="importBox" hidden style="margin-bottom:14px">
+  <textarea id="importText" rows="3" placeholder="Paste a config copied earlier, then Load"></textarea>
+  <div class="actions"><button class="btn p" id="btnImport">Load</button><button class="btn" id="btnImportCancel">Cancel</button></div>
+</div>
+<div class="grid">
+  <aside class="cfg" id="cfg"></aside>
+  <main id="out"></main>
+</div>
+</div>
+<script type="text/plain" id="srcData">// Every call to Power Automate goes through here. Nothing read is cached or stored.
+// Calls are text/plain POSTs: a "simple" request with no preflight. Each flow's Response action sets
+// Access-Control-Allow-Origin so the browser lets the app read the answer (same pattern as the IVK eligibility feed).
+(function (root) {
+  'use strict';
+
+  class FlowError extends Error {
+    constructor(kind, detail, status, body) { super(detail); this.kind = kind; this.status = status || 0; this.body = body || null; }
+  }
+
+  async function call(url, body) {
+    if (root.Demo) return root.Demo.call(body);
+    if (!url) throw new FlowError('setup', 'no flow url');
+    let res;
+    try {
+      res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(body), cache: 'no-store', referrerPolicy: 'no-referrer' });
+    } catch (e) { throw new FlowError('blocked', e && e.message); }
+    const text = await res.text().catch(() => '');
+    let data = null; try { data = JSON.parse(text.replace(/^﻿/, '')); } catch (e) { /* not json */ }
+    if (res.status === 401) throw new FlowError('signin', 'HTTP 401', 401, data);
+    if (res.status === 403) throw new FlowError('denied', 'HTTP 403', 403, data);
+    if (res.status === 429) throw new FlowError('busy', 'HTTP 429', 429, data);
+    if (!res.ok || !data) throw new FlowError('http', `HTTP ${res.status}`, res.status, data);
+    return data;
+  }
+
+  const S = () => root.SHELL || {};
+  const start = (email) => call(S().authUrl, { action: 'start', email });
+  const verify = (requestId, code) => call(S().authUrl, { action: 'verify', requestId, code });
+  // files: names from the Read flow's allowlist (config, readiness, ...). The flow answers
+  // { ok, clinic, files: [{ name, content }] } (content null when the file is missing); the app gets { name: content }.
+  // Right after sign-in, Excel can lag a few seconds before the new session row shows, so a 401 in the first 30 s is retried.
+  let signedInAt = 0;
+  const markSignedIn = () => { signedInAt = Date.now(); };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function read(token, clinic, files) {
+    for (let i = 0; ; i++) {
+      try {
+        const r = await call(S().readUrl, { action: 'read', token, clinic, files });
+        const out = {};
+        for (const f of Array.isArray(r.files) ? r.files : []) if (f && f.name) out[f.name] = f.content == null ? null : f.content;
+        if (r.files && !Array.isArray(r.files)) Object.assign(out, r.files);
+        return { ok: r.ok, clinic: r.clinic, files: out };
+      } catch (e) {
+        if (e.kind === 'signin' && i < 3 && Date.now() - signedInAt < 30000) { await wait(3000); continue; }
+        throw e;
+      }
+    }
+  }
+
+  function explain(e) {
+    switch (e && e.kind) {
+      case 'signin': return 'Your sign-in ran out. Sign in again.';
+      case 'denied': return "You don't have access to this clinic. Ask Brendan to add it to your account.";
+      case 'busy': return 'Too many requests right now. Wait a minute and try again.';
+      case 'setup': return "This app isn't linked to its flows yet.";
+      case 'blocked': return "Couldn't reach the clinic data. Check your connection and try again.";
+      default: return 'The clinic data service had a problem. Try again in a minute.';
+    }
+  }
+
+  root.Data = { call, start, verify, read, explain, markSignedIn, FlowError };
+})(self);
+</script>
+<script>
+/* ---------- fixed rules (mirrored in js/data.js and js/app.js) ---------- */
+const MAX_TRIES = 3;                     // wrong codes before a code locks
+const FILES = ['config','readiness','benefits','schedule','panel-tms','panel-esk','consults','utilization','calls'];
+const READ_ACTIONS = 15, SIGNIN_ACTIONS = 24; // actions per run, for the request estimate
+
+const state = {
+  authName:'Clinic App · Auth', readName:'Clinic App · Read', account:'',
+  origin:'https://brendannyates.github.io', appPath:'/mhs-clinic-app/',
+  workbook:'/Clinic App Auth.xlsx', root:'/Clinic Apps',
+  codeMin:10, sessionHours:12, maxCodes:3, users:10, pollMin:5, hours:10, allowance:40000,
+  testEmail:'', testClinic:'castro'
+};
+const COPY = {}; let copyN = 0;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function reg(t){ const id = 'c' + (++copyN); COPY[id] = t; return id; }
+function copyBtn(t, label){ return `<button class="btn" data-copy="${reg(t)}">${label || 'Copy'}</button>`; }
+async function copyText(t, btn){
+  try { await navigator.clipboard.writeText(t); }
+  catch(e){ const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  if (btn){ const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1400); }
+}
+const tsv = rows => rows.map(r => r.map(c => String(c ?? '')).join('\t')).join('\n');
+function tableHtml(rows){ const [h, ...b] = rows; return `<table><thead><tr>${h.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${b.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`; }
+const sq = s => String(s).replace(/'/g, "''");           // Power Automate string literal escape
+const appUrl = () => state.origin.replace(/\/+$/,'') + '/' + state.appPath.replace(/^\/+|\/+$/g,'') + '/';
+const codeSec = () => Math.round(+state.codeMin * 60), sessSec = () => Math.round(+state.sessionHours * 3600);
+
+/* ---------- expressions ---------- */
+const X = {};
+function buildExpr(){
+  const eqFilter = (col, v) => `concat('${col} eq ''', replace(${v},'''',''''''), '''')`;
+  const num = v => `int(concat('0', string(${v})))`;
+  X.NOW = `div(sub(ticks(utcNow()),621355968000000000),10000000)`;
+  X.PARSE = `json(string(triggerBody()))`;
+  X.PARSE_ALT = `json(base64ToString(triggerBody()?['$content']))`;
+  X.GUID = `guid()`;
+  X.CODE = `formatNumber(rand(0,1000000),'000000')`;
+  X.TOKEN = `replace(concat(guid(),guid()),'-','')`;
+  X.EMAIL = `toLower(trim(string(coalesce(body('Parse_JSON')?['email'],''))))`;
+  X.IS_VERIFY = `equals(body('Parse_JSON')?['action'],'verify')`;
+  X.F_USER = eqFilter('Email', `outputs('Email')`);
+  X.ACTIVE = `@and(equals(toLower(string(item()?['Active'])),'true'), equals(toLower(string(item()?['Email'])), outputs('Email')))`;
+  X.RECENT = `@greater(${num(`item()?['Created']`)}, sub(variables('now'), 900))`;
+  X.SEND = `and(equals(length(body('Active_user')),1), less(length(body('Recent_codes')),${+state.maxCodes}))`;
+  X.CODE_CELL = `concat('c', variables('code'))`;
+  X.EXPIRES_CODE = `add(variables('now'), ${codeSec()})`;
+  X.CARD = `json(concat('{"type":"AdaptiveCard","$schema":"http://adaptivecards.io/schemas/adaptive-card.json","version":"1.4","body":[{"type":"TextBlock","text":"MHS Clinic sign-in","weight":"Bolder","size":"Medium"},{"type":"TextBlock","text":"', concat(substring(variables('code'),0,3),' ',substring(variables('code'),3,3)), '","fontType":"Monospace","size":"ExtraLarge","weight":"Bolder","spacing":"Small"},{"type":"TextBlock","text":"Good until ', convertFromUtc(addSeconds(utcNow(),${codeSec()}),'Pacific Standard Time','H:mm'), '. If you didn''t ask for this, ignore it.","wrap":true,"isSubtle":true,"spacing":"Small"}],"actions":[{"type":"Action.OpenUrl","title":"Sign in to MHS Clinic","url":"${sq(appUrl())}#signin=', variables('requestId'), '.', variables('code'), '"}]}'))`;
+  X.START_ANSWER = `addProperty(addProperty(json('{"ok":true}'),'requestId',variables('requestId')),'expiresAt',addSeconds(utcNow(),${codeSec()}))`;
+  X.F_CODE = eqFilter('RequestId', `string(coalesce(body('Parse_JSON')?['requestId'],''))`);
+  X.CODE_ROW = `first(body('List_code')?['value'])`;
+  X.TRIES = num(`outputs('Code_row')?['Tries']`);
+  X.USABLE = `and(not(empty(outputs('Code_row'))), not(equals(toLower(string(outputs('Code_row')?['Used'])),'true')), greater(${num(`outputs('Code_row')?['Expires']`)}, variables('now')), less(${X.TRIES}, ${MAX_TRIES}))`;
+  X.NOT_USABLE_ANSWER = `addProperty(json('{"ok":false}'),'reason',if(greaterOrEquals(${X.TRIES},${MAX_TRIES}),'locked','expired'))`;
+  X.MATCH = `equals(string(outputs('Code_row')?['Code']), concat('c', replace(string(body('Parse_JSON')?['code']),' ','')))`;
+  X.TRIES_NEXT = `add(${X.TRIES},1)`;
+  X.WRONG_ANSWER = `addProperty(addProperty(json('{"ok":false}'),'reason',if(greaterOrEquals(${X.TRIES_NEXT},${MAX_TRIES}),'locked','wrong')),'triesLeft',max(0,sub(${MAX_TRIES},${X.TRIES_NEXT})))`;
+  X.CODE_KEY = `outputs('Code_row')?['RequestId']`;
+  X.F_VUSER = eqFilter('Email', `string(outputs('Code_row')?['Email'])`);
+  X.VUSER_ROW = `first(body('List_verified_user')?['value'])`;
+  X.EXPIRES_SESS = `add(variables('now'), ${sessSec()})`;
+  X.SESSION_ANSWER = `addProperty(addProperty(addProperty(addProperty(addProperty(addProperty(json('{"ok":true}'),'token',variables('token')),'name',string(outputs('User_row')?['Name'])),'email',string(outputs('User_row')?['Email'])),'role',string(outputs('User_row')?['Role'])),'clinics',split(replace(toLower(string(outputs('User_row')?['Clinics'])),' ',''),',')),'expiresAt',addSeconds(utcNow(),${sessSec()}))`;
+  // read flow
+  X.CLINIC = `toLower(trim(string(coalesce(body('Parse_JSON')?['clinic'],''))))`;
+  X.F_TOKEN = eqFilter('Token', `string(coalesce(body('Parse_JSON')?['token'],''))`);
+  X.SESSION_ROW = `first(body('List_session')?['value'])`;
+  X.F_SUSER = eqFilter('Email', `string(outputs('Session_row')?['Email'])`);
+  X.USER_ROW_R = `first(body('List_user')?['value'])`;
+  X.SIGNED_OK = `and(not(empty(outputs('Session_row'))), greater(${num(`outputs('Session_row')?['Expires']`)}, variables('now')), equals(toLower(string(outputs('User_row')?['Active'])),'true'))`;
+  X.CLINIC_OK = `contains(split(replace(toLower(string(outputs('User_row')?['Clinics'])),' ',''),','), outputs('Clinic'))`;
+  X.FILES_FROM = `coalesce(body('Parse_JSON')?['files'], json('[]'))`;
+  X.FILES_OK = `@contains(createArray(${FILES.map(f=>`'${f}'`).join(',')}), item())`;
+  X.PATH = `if(equals(item(),'config'), concat('${sq(state.root)}/', outputs('Clinic'), '/config.json'), concat('${sq(state.root)}/', outputs('Clinic'), '/out/', item(), '.json'))`;
+  X.PART_OK = `addProperty(addProperty(json('{}'),'name',item()),'content',json(base64ToString(body('Get_file_content_using_path')?['$content'])))`;
+  X.PART_MISSING = `json(concat('{"name":"', item(), '","content":null}'))`;
+  X.READ_ANSWER = `addProperty(addProperty(json('{"ok":true}'),'clinic',outputs('Clinic')),'files',variables('parts'))`;
+  X.FILES_JOINED = `join(body('Allowed_files'),',')`;
+}
+
+/* ---------- cards ---------- */
+const fx = (e, why) => [`<code>${esc(e)}</code> <span class="small">(expression${why ? ': ' + esc(why) : ''})</span>`, copyBtn(e)];
+const txt = v => `<code>${esc(v)}</code>`;
+function card(color, letter, kind, title, conn, fields, noteHtml, childHtml){
+  return `<div class="card" style="--c:${color}">
+    <div class="ch"><span class="ico" style="background:${color}">${letter}</span>
+      <div><div class="kind">${kind}</div><div class="title">${title}</div><div class="conn">${conn}</div></div></div>
+    ${fields.map(f => `<div class="f"><div class="l">${f[0]}</div><div class="v">${Array.isArray(f[1]) ? f[1][0] : f[1]}</div><div>${Array.isArray(f[1]) ? f[1][1] : (f[2] || '')}</div></div>`).join('')}
+    ${childHtml || ''}
+    ${noteHtml ? `<p class="note">${noteHtml}</p>` : ''}
+  </div>`;
+}
+const link = `<div class="link"><span>+</span></div>`;
+const branch = (label, html) => `<div class="branch"><div class="bl">${label}</div>${html}</div>`;
+const between = (...cards) => cards.join('<div style="height:10px"></div>');
+
+const excelLoc = () => [['Location','OneDrive for Business'],['Document Library','OneDrive'],['File', txt(state.workbook)]];
+const listRows = (title, table, filterExpr, note) => card('var(--excel)','X','Action',`List rows present in a table, renamed <b>${title}</b>`,'Excel Online (Business)',
+  [...excelLoc(), ['Table', txt(table)], ['Filter Query (advanced)', fx(filterExpr, 'exact match, quotes escaped')]], note);
+const addRow = (table, cols, note) => card('var(--excel)','X','Action','Add a row into a table','Excel Online (Business)',
+  [...excelLoc(), ['Table', txt(table)], ...cols.map(([k, v, isTxt]) => [k, isTxt ? txt(v) : fx(v)])], note);
+const updRow = (cols, note) => card('var(--excel)','X','Action','Update a row','Excel Online (Business)',
+  [...excelLoc(), ['Table', txt('tblAppCodes')], ['Key Column', txt('RequestId')], ['Key Value', fx(X.CODE_KEY)], ...cols.map(([k, v, isTxt]) => [k, isTxt ? txt(v) : fx(v)])], note);
+const compose = (name, e, note) => card('var(--dataop)','{ }','Action',`Compose, renamed <b>${name}</b>`,'Data Operation',[['Inputs', fx(e)]], note);
+const initVar = (name, type, e, note) => card('var(--variable)','x','Action',`Initialize variable: <b>${name}</b>`,'Variable',[['Name', name],['Type', type],['Value', fx(e)]], note);
+const cond = (name, e, note, yes, no) => card('var(--control)','?','Control',`Condition, renamed <b>${name}</b>`,'Control',
+  [['Condition', fx(e)], ['is equal to', fx('true', 'type true in the fx box, not as text')]], note,
+  branch('True', yes) + branch('False', no));
+const response = (status, bodyExpr, note) => card('var(--http)','↩','Action',`Response (${status})`,'Request',
+  [['Status Code', txt(status)], ['Headers', `${txt('Access-Control-Allow-Origin')} : ${txt(state.origin.replace(/\/+$/,''))}<br>${txt('Content-Type')} : ${txt('application/json')}<br>${txt('Cache-Control')} : ${txt('no-store')}`, copyBtn(`{"Access-Control-Allow-Origin":"${state.origin.replace(/\/+$/,'')}","Content-Type":"application/json","Cache-Control":"no-store"}`, 'Copy as JSON')],
+   ['Body', fx(bodyExpr)]], note);
+const trigger = () => card('var(--http)','⇥','Trigger','When an HTTP request is received','Request',
+  [['Who can trigger the flow?','Anyone'],['Method','POST'],['Request Body JSON Schema','Leave empty (the app sends text/plain; Parse JSON does the parsing)']],
+  `After the first <b>Save</b> this card shows the <b>HTTP URL</b>. It goes in <code>js/shell-config.js</code> in the app repo, which is public by design: the URL is not the lock. Keep it out of Teams messages and this sheet.`);
+const parse = () => card('var(--dataop)','{ }','Action','Parse JSON','Data Operation',
+  [['Content', fx(X.PARSE, 'the text/plain body back into JSON')],['Schema', 'Use sample payload: paste the sample', copyBtn(SAMPLE())]],
+  `Keep the default name <b>Parse JSON</b>; every expression below says <code>body('Parse_JSON')</code>. If the first run shows the body wrapped in <code>$content</code>, use <code>${esc(X.PARSE_ALT)}</code> ${copyBtn(X.PARSE_ALT,'Copy alternate')}. Settings › <b>Secure inputs</b> and <b>Secure outputs</b> on, so codes and tokens stay out of run history.`);
+let SAMPLE = () => '{}';
+
+function renderAuth(){
+  SAMPLE = () => '{"action":"verify","email":"name@example.com","requestId":"00000000-0000-0000-0000-000000000000","code":"123456"}';
+  const acct = esc(state.account.trim() || 'your account');
+  const startBranch = between(
+    listRows('List user','tblAppUsers', X.F_USER, 'Emails in tblAppUsers must be lowercase; the match is exact.'),
+    card('var(--dataop)','⏷','Action','Filter array, renamed <b>Active user</b>','Data Operation',[['From', fx(`body('List_user')?['value']`)],['Condition (Edit in advanced mode)', fx(X.ACTIVE)]],'Only an exact, active row counts.'),
+    listRows('List recent codes','tblAppCodes', X.F_USER),
+    card('var(--dataop)','⏷','Action','Filter array, renamed <b>Recent codes</b>','Data Operation',[['From', fx(`body('List_recent_codes')?['value']`)],['Condition (Edit in advanced mode)', fx(X.RECENT, 'codes from the last 15 min')]],`At most ${+state.maxCodes} codes per person per 15 minutes, so a public URL can't be used to flood someone's Teams.`),
+    cond('Send code', X.SEND, 'Unknown, inactive or rate-limited emails take the False branch, which does nothing. The answer below is the same either way, so the app never reveals who has access.',
+      between(
+        addRow('tblAppCodes', [['RequestId',`variables('requestId')`],['Email',`outputs('Email')`],['Code',X.CODE_CELL],['Created',`variables('now')`],['Expires',X.EXPIRES_CODE],['Tries','0',true],['Used','FALSE',true]],
+          'The code is stored as <code>c123456</code> so Excel never turns <code>012345</code> into a number and drops the leading zero.'),
+        compose('Card', X.CARD, 'The Teams card: title, the code large and spaced (<code>123 456</code>), when it runs out, and an <b>Open URL</b> button that signs in with one tap. Adaptive Cards in Teams have no copy-to-clipboard action, so the button is the copy.'),
+        card('var(--teams)','T','Action','Post card in a chat or channel','Microsoft Teams',
+          [['Post as','Flow bot'],['Post in','Chat with Flow bot'],['Recipient', fx(`outputs('Email')`)],['Adaptive Card', fx(`outputs('Card')`)]],
+          'Arrives from <b>Workflows</b> in the person’s chat list. If posting fails with a Teams app policy error, the tenant blocks the Workflows app: use the fallback in section 6.')),
+      '<p class="small" style="margin:0">Nothing. Leave it empty.</p>'),
+    response('200', X.START_ANSWER, 'Same answer whether or not a code went out.'));
+  const verifyBranch = between(
+    listRows('List code','tblAppCodes', X.F_CODE),
+    compose('Code row', X.CODE_ROW),
+    cond('Code usable', X.USABLE, 'Usable means: found, not used, not run out, fewer than 3 wrong tries. Numbers are read with <code>int(concat(\'0\', …))</code> so a blank cell reads as 0 instead of failing.',
+      cond('Code matches', X.MATCH, '',
+        between(
+          updRow([['Used','TRUE',true]], 'One use only: the Teams button and the typed code can’t both sign in.'),
+          listRows('List verified user','tblAppUsers', X.F_VUSER),
+          compose('User row', X.VUSER_ROW),
+          addRow('tblAppSessions', [['Token',`variables('token')`],['Email',`outputs('User_row')?['Email']`],['Name',`outputs('User_row')?['Name']`],['Role',`outputs('User_row')?['Role']`],['Created',`variables('now')`],['Expires',X.EXPIRES_SESS]]),
+          addRow('tblAppAccessLog', [['Ts',`utcNow()`],['Email',`outputs('User_row')?['Email']`],['Clinic','',true],['Files','',true],['Result','signed in',true]]),
+          response('200', X.SESSION_ANSWER, `The app keeps the token in the tab's sessionStorage only; it lasts ${+state.sessionHours} hours or until the window closes.`)),
+        between(
+          updRow([['Tries', X.TRIES_NEXT]]),
+          response('401', X.WRONG_ANSWER, 'The app says "That code doesn’t match. 2 tries left." or, at the third miss, "Too many tries. Send a new code."'))),
+      response('401', X.NOT_USABLE_ANSWER, 'Covers wrong request id, already used, run out and locked. The app asks for a new code.')));
+  return `
+  <h3>Flow A: ${esc(state.authName)}</h3>
+  <p class="after" style="margin:0 0 12px">In <a href="https://make.powerautomate.com" target="_blank" rel="noopener">make.powerautomate.com</a>, signed in as ${acct}: Create, Instant cloud flow, skip, then search the trigger list for "When an HTTP request is received". Name it <b>${esc(state.authName)}</b>. Top level: trigger, Parse JSON, four variables, one Compose, then one Condition that splits sending a code from checking one. <b>Initialize variable</b> only works at the top level, which is why all four sit before the split.</p>
+  <div class="flow">
+    ${trigger()}${link}${parse()}${link}
+    ${initVar('now','Integer',X.NOW,'Unix seconds. Every time in the tables is stored this way so Excel never reformats it.')}${link}
+    ${initVar('requestId','String',X.GUID)}${link}
+    ${initVar('code','String',X.CODE,'Six digits with leading zeros kept.')}${link}
+    ${initVar('token','String',X.TOKEN,'64 hex characters from two GUIDs.')}${link}
+    ${compose('Email', X.EMAIL)}${link}
+    ${cond('Is verify', X.IS_VERIFY, 'The app sends <code>action: "start"</code> with an email, or <code>action: "verify"</code> with a requestId and code.', verifyBranch, startBranch)}
+  </div>`;
+}
+
+function renderRead(){
+  const inLoop = between(
+    card('var(--od)','☁','Action inside the loop','Get file content using path','OneDrive for Business',[['File Path', fx(X.PATH, 'config.json, or out/<name>.json')],['Infer Content Type','No']],
+      'With Infer Content Type set to No the content always comes back as base64, which the next card decodes. Settings › <b>Secure outputs</b> on: these files carry LASFIR and MRN, and run history otherwise keeps them for 28 days.'),
+    card('var(--variable)','x','Action inside the loop','Append to array variable','Variable',[['Name','parts'],['Value', fx(X.PART_OK)]],'Secure inputs on, for the same reason.'),
+    card('var(--variable)','x','Action inside the loop','Append to array variable 1','Variable',[['Name','parts'],['Value', fx(X.PART_MISSING)],['Configure run after','Get file content using path: <b>has failed</b> only']],'A file that isn’t there yet comes back as null; the app says "Readiness isn’t set up for this clinic yet."'));
+  const ok = between(
+    card('var(--dataop)','⏷','Action','Filter array, renamed <b>Allowed files</b>','Data Operation',[['From', fx(X.FILES_FROM)],['Condition (Edit in advanced mode)', fx(X.FILES_OK)]],
+      'Only these names can be read: ' + FILES.map(f => `<code>${f}</code>`).join(' ') + '. With the clinic matched against the person’s own list, nothing outside their clinic folder can be named.'),
+    card('var(--control)','⟳','Control','Apply to each, renamed <b>For each file</b>','Control',[['Select an output', fx(`body('Allowed_files')`)],['Settings › Concurrency control','On, degree 1']],
+      'Rename first, then add the three actions inside it. One at a time keeps the array appends in order.', inLoop),
+    addRow('tblAppAccessLog', [['Ts',`utcNow()`],['Email',`outputs('Session_row')?['Email']`],['Clinic',`outputs('Clinic')`],['Files',X.FILES_JOINED],['Result','read',true]],
+      'Configure run after: <b>For each file</b> is successful <b>and</b> has failed, so a missing file still gets logged and answered.'),
+    response('200', X.READ_ANSWER, 'Configure run after the same way. Secure inputs on.'));
+  const denied = between(
+    addRow('tblAppAccessLog', [['Ts',`utcNow()`],['Email',`outputs('Session_row')?['Email']`],['Clinic',`outputs('Clinic')`],['Files','',true],['Result','denied',true]]),
+    response('403', `json('{"ok":false,"reason":"clinic"}')`));
+  return `
+  <h3>Flow B: ${esc(state.readName)}</h3>
+  <p class="after" style="margin:0 0 12px">Same start: Instant cloud flow, "When an HTTP request is received", name it <b>${esc(state.readName)}</b>. The app sends <code>{action:"read", token, clinic, files:[…]}</code>. Top level: trigger, Parse JSON, two variables, one Compose, two lookups, then two Conditions.</p>
+  <div class="flow">
+    ${trigger()}${link}${parse()}${link}
+    ${initVar('now','Integer',X.NOW)}${link}
+    ${initVar('parts','Array',`json('[]')`)}${link}
+    ${compose('Clinic', X.CLINIC)}${link}
+    ${listRows('List session','tblAppSessions', X.F_TOKEN)}${link}
+    ${compose('Session row', X.SESSION_ROW)}${link}
+    ${listRows('List user','tblAppUsers', X.F_SUSER, 'Looked up on every read, so Active = FALSE or a removed clinic takes effect on the person’s next refresh.')}${link}
+    ${compose('User row', X.USER_ROW_R)}${link}
+    ${cond('Signed in', X.SIGNED_OK, 'A live session for an active person.',
+        cond('Clinic allowed', X.CLINIC_OK, 'The clinic must be on the person’s own Clinics list.', ok, denied),
+        response('401', `json('{"ok":false,"reason":"session"}')`, 'The app goes back to its sign-in screen.'))}
+  </div>
+  <p class="after"><b>Save</b> both flows, put the two HTTP URLs into <code>js/shell-config.js</code> (<code>authUrl</code>, <code>readUrl</code>), then run the tests in section 4 in order.</p>`;
+}
+
+function renderTables(){
+  const T = [
+    ['tblAppUsers', [['Email','Name','Clinics','Role','Active'],[state.testEmail.trim().toLowerCase() || 'name@mymhs.com','Alex P.','castro, san-rafael','Ops','TRUE']],
+      'One row per person. Email lowercase. Name is how staff know them (first name and initial). Clinics: folder names under ' + state.root + ', comma separated. Role: Ops or Clinician (Clinicians open on the Clinicians view). Active: TRUE or FALSE; FALSE cuts access on their next refresh.'],
+    ['tblAppCodes', [['RequestId','Email','Code','Created','Expires','Tries','Used']], 'Written by the Auth flow. Format Created, Expires and Tries as Number with 0 decimals. Code is text (c123456).'],
+    ['tblAppSessions', [['Token','Email','Name','Role','Created','Expires']], 'Written by the Auth flow. Format Created and Expires as Number with 0 decimals.'],
+    ['tblAppAccessLog', [['Ts','Email','Clinic','Files','Result']], 'Every sign-in, read and denial. This is the audit trail; archive it monthly (see section 5).'],
+  ];
+  return `<h2>2. Workbook settings</h2>
+  <p class="after" style="margin:0">One workbook, <code>${esc(state.workbook)}</code> in your OneDrive, <b>shared with nobody</b>. Keep it outside <code>${esc(state.root)}</code>, which gets shared. For each block: paste into an empty sheet at A1, Insert › Table (headers ticked), Table Design › Table Name.</p>
+  ${T.map(([n, rows, note]) => `<div class="tbl-head"><h3><code>${n}</code></h3>${copyBtn(tsv(rows),'Copy for Excel')}</div>${tableHtml(rows)}<p class="note">${esc(note)}</p>`).join('')}`;
+}
+
+function renderClient(){
+  const src = document.getElementById('srcData').textContent.replace(/<\\\/script/gi, '</script');
+  const cfg = `self.SHELL = {\n  authUrl: '<${state.authName} HTTP URL>',\n  readUrl: '<${state.readName} HTTP URL>',\n  emailDomain: 'mymhs.com',\n  pollMs: ${Math.round(+state.pollMin * 60000)},\n};`;
+  return `<h2>3. App code</h2>
+  <p class="after" style="margin:0">Already in the repo. <code>js/shell-config.js</code> takes the two URLs; <code>js/data.js</code> makes every call. Copies below for reference.</p>
+  <div class="tbl-head"><h3><code>js/shell-config.js</code> (the part you edit)</h3>${copyBtn(cfg)}</div><div class="pre-wrap"><pre>${esc(cfg)}</pre></div>
+  <details><summary>Show js/data.js</summary><div class="pre-wrap">${copyBtn(src)}<pre>${esc(src)}</pre></div></details>`;
+}
+
+function renderTest(){
+  const o = state.origin.replace(/\/+$/,''), em = state.testEmail.trim().toLowerCase() || 'name@mymhs.com', cl = state.testClinic.trim().toLowerCase() || 'castro';
+  const ps = `# Set the two URLs once in this terminal (copy them from each flow's trigger card). Never paste them into chat or Teams.
+# $env:CLINIC_AUTH_URL = '<paste here>'
+# $env:CLINIC_READ_URL = '<paste here>'
+$h = @{ Origin = '${o}' }
+function Call($url, $body) {
+  $r = Invoke-WebRequest -Method Post -Uri $url -Headers $h -ContentType 'text/plain;charset=UTF-8' -Body ($body | ConvertTo-Json -Compress) -SkipHttpErrorCheck
+  "HTTP $($r.StatusCode)  CORS: $($r.Headers['Access-Control-Allow-Origin'])"
+  $r.Content | ConvertFrom-Json
+}
+
+# 1. Ask for a code. Expect HTTP 200, CORS ${o}, and a Workflows card in your Teams.
+$a = Call $env:CLINIC_AUTH_URL @{ action = 'start'; email = '${sq(em)}' }; $a
+
+# 2. Type the code from Teams. Expect HTTP 200 with your name, role and clinics. Try a wrong code first: 401 'wrong', 2 tries left.
+$code = Read-Host 'Code from Teams'
+$s = Call $env:CLINIC_AUTH_URL @{ action = 'verify'; requestId = $a.requestId; code = $code }; $s | Select-Object ok, name, role, clinics, expiresAt
+
+# 3. Read your clinic. Expect HTTP 200; files[0].content is config.json, files[1].content is readiness.json or null.
+$d = Call $env:CLINIC_READ_URL @{ action = 'read'; token = $s.token; clinic = '${cl}'; files = @('config','readiness') }; $d.files | Select-Object name, @{n='loaded';e={$null -ne $_.content}}
+
+# 4. A clinic not on your row: expect HTTP 403. A made-up token: expect HTTP 401.
+Call $env:CLINIC_READ_URL @{ action = 'read'; token = $s.token; clinic = 'not-a-clinic'; files = @('config') }
+Call $env:CLINIC_READ_URL @{ action = 'read'; token = 'nope'; clinic = '${cl}'; files = @('config') }
+Remove-Variable s, d, code   # the token and the file contents stay in this terminal only`;
+  const perDay = Math.round(+state.users * (60 / Math.max(1, +state.pollMin)) * +state.hours * READ_ACTIONS + +state.users * SIGNIN_ACTIONS);
+  const share = Math.round(perDay / Math.max(1, +state.allowance) * 100);
+  return `<h2>4. Test</h2>
+  <p class="after" style="margin:0">PowerShell 7, in your own terminal. Set the two URLs as environment variables there; they never go into chat. Test 1 sends a real code to <b>${esc(em)}</b>, so that email needs an Active row in tblAppUsers.</p>
+  <div class="pre-wrap">${copyBtn(ps)}<pre>${esc(ps)}</pre></div>
+  <h3>What the Teams card looks like</h3>
+  <div class="tc"><div class="t1">MHS Clinic sign-in</div><div class="t2">482 913</div><div class="t3">Good until 10:42. If you didn't ask for this, ignore it.</div><span class="ab">Sign in to MHS Clinic</span></div>
+  <p class="note">The button opens <code>${esc(appUrl())}#signin=&lt;requestId&gt;.&lt;code&gt;</code>. The app takes the code out of the address bar at once, and the code works once.</p>
+  <h3>Request budget</h3>
+  <div class="decision ${share > 60 ? 'warn' : ''}">About <b>${perDay.toLocaleString()}</b> actions a day: ${+state.users} people with the app open ${+state.hours} hours, refreshing every ${+state.pollMin} min (${READ_ACTIONS} actions a read), plus one sign-in each. That is <b>${share}%</b> of a ${(+state.allowance).toLocaleString()} daily allowance${share > 60 ? ', before your other flows. Raise the refresh interval or move the tables to SharePoint lists.' : ', leaving room for your other flows.'} The allowance figure is what I understand Power Automate Premium gives per license; check it in the Power Platform admin center.</div>`;
+}
+
+function renderChecklist(){
+  const items = [
+    `Both flows are owned by ${esc(state.account.trim() || 'your account')}, with a second owner added. Today every sign-in depends on that one account.`,
+    'Both triggers are set to <b>Anyone</b>, and both URLs are in <code>js/shell-config.js</code> and nowhere else (no Teams message, no email, not this sheet).',
+    `<code>${esc(state.workbook)}</code> exists, is shared with nobody, and has the four tables with the exact names and number formats.`,
+    'Secure inputs/outputs are on for Parse JSON, Get file content, both Append cards and every Response. Open one run and confirm the bodies show as hidden.',
+    'Tests 1–4 pass, and test 1 shows the CORS header with the app’s origin.',
+    'In the app: Send my code → card arrives → Sign in button opens the app signed in. A wrong code shows "2 tries left".',
+    'Set your own row to Active = FALSE: within one refresh the app returns to sign-in. Set it back.',
+    'Monthly: copy tblAppAccessLog to an archive workbook and clear it; delete tblAppCodes and tblAppSessions rows older than a day. Large tables slow every lookup.',
+    'Your compliance lead has reviewed this design: Teams-delivered one-time codes, 12-hour session tokens in sessionStorage, the access log as the audit trail.',
+  ];
+  return `<h2>5. Before you call it done</h2><ul class="check">${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+}
+
+function renderFallback(){
+  return `<h2>6. Fallback: Teams won't post the card</h2>
+  <p class="after" style="margin:0 0 12px">If "Post card in a chat or channel" fails with an app policy or bot error, the tenant blocks the Workflows app for chats. Send the same code by email from your mailbox instead; replace the Teams card with this one and keep everything else.</p>
+  <div class="flow">${card('var(--http)','✉','Action inside Send code › True','Send an email (V2)','Office 365 Outlook',[
+    ['To', fx(`outputs('Email')`)],['Subject', txt('MHS Clinic sign-in code')],
+    ['Body', fx(`concat('<p>Your MHS Clinic code is <b style="font-size:22px">', variables('code'), '</b>. It works until ', convertFromUtc(addSeconds(utcNow(),${codeSec()}),'Pacific Standard Time','H:mm'), '.</p><p><a href="${sq(appUrl())}#signin=', variables('requestId'), '.', variables('code'), '">Sign in to MHS Clinic</a></p><p>If you didn''t ask for this, ignore it.</p>')`)],
+    ['Importance','High']],'Change the app’s sign-in copy from "Check Teams" to "Check your email" if you switch.')}</div>`;
+}
+
+/* ---------- config panel ---------- */
+const FIELDS = [
+  ['Flows', [['authName','Auth flow name'],['readName','Read flow name'],['account','Account that owns the connections']]],
+  ['App', [['origin','App origin (for the CORS header)'],['appPath','App path'],['root','Clinic folders root in OneDrive'],['workbook','Auth workbook path in OneDrive']]],
+  ['Timing', [['codeMin','Code lasts (minutes)','number'],['sessionHours','Session lasts (hours)','number'],['maxCodes','Codes per person per 15 min','number']]],
+  ['Request budget', [['users','People with the app open','number'],['pollMin','Refresh every (minutes)','number'],['hours','Hours open a day','number'],['allowance','Daily action allowance','number']]],
+  ['Test', [['testEmail','Your work email (test 1 sends you a code)'],['testClinic','A clinic on your row']]],
+];
+function renderConfig(){
+  document.getElementById('cfg').innerHTML = `<h2>What and where</h2>` + FIELDS.map(([g, fs]) => `<h3>${g}</h3>` + fs.map(([k, l, t]) =>
+    `<label class="lbl" for="f_${k}">${esc(l)}</label><input id="f_${k}" data-k="${k}" type="${t || 'text'}" value="${esc(state[k])}">`).join('')).join('') +
+    `<h3>Fixed rules</h3><div class="rules"><p>${MAX_TRIES} wrong tries lock a code. Readable files: ${FILES.join(', ')}.</p><p>Hardcoded in this sheet and mirrored in <code>js/data.js</code> / <code>js/app.js</code>, not in the workbook.</p></div>`;
+}
+function renderOutput(){
+  buildExpr(); for (const k in COPY) delete COPY[k];
+  document.getElementById('out').innerHTML = `<h2 style="margin-top:0">1. The flows, step by step</h2>` + renderAuth() + renderRead() + renderTables() + renderClient() + renderTest() + renderChecklist() + renderFallback();
+}
+document.getElementById('cfg').addEventListener('input', e => { const k = e.target.dataset.k; if (!k) return; state[k] = e.target.value; renderOutput(); });
+document.addEventListener('click', e => { const b = e.target.closest('[data-copy]'); if (b) copyText(COPY[b.dataset.copy], b); });
+document.getElementById('btnExport').onclick = e => copyText(JSON.stringify(state, null, 1), e.target);
+document.getElementById('btnImportToggle').onclick = () => { document.getElementById('importBox').hidden = false; };
+document.getElementById('btnImportCancel').onclick = () => { document.getElementById('importBox').hidden = true; };
+document.getElementById('btnImport').onclick = () => {
+  try { Object.assign(state, JSON.parse(document.getElementById('importText').value)); document.getElementById('importBox').hidden = true; renderConfig(); renderOutput(); }
+  catch (e) { alert('That isn’t a config copied from this sheet.'); }
+};
+renderConfig(); renderOutput();
+</script>
+</body>
+</html>

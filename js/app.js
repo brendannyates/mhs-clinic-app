@@ -1,22 +1,25 @@
-// UI. Reads go through Data.getJSON; derived state comes from Core. Nothing read from OneDrive is stored:
-// it lives in memory until the tab closes. sessionStorage holds only the clinic slug and the display name.
+// UI. Every read goes through Data (Power Automate flows); derived state comes from Core. Nothing read is stored:
+// it lives in memory until the tab closes. sessionStorage holds the session token, the verified name and the clinic slug.
 (function () {
   'use strict';
   const C = self.Core, D = self.Data, $ = (id) => document.getElementById(id);
   const DEMO = !!self.Demo;
-  const INDEX = DEMO ? self.Demo.indexUrl : (self.SHELL && self.SHELL.indexUrl) || '';
-  const POLL = (self.SHELL && self.SHELL.pollMs) || 60000;
+  const SH = self.SHELL || {};
+  const POLL = SH.pollMs || 300000;
+  const CHANNEL = 'mhs-clinic-signin';
 
   const state = {
-    clinics: [],          // [{slug, config}] readable by this user
+    session: null,        // {token, name, email, role, clinics:[slug], expiresAt} from the Auth flow
+    clinics: [],          // [{slug, config}] this person can read
     clinic: null,         // current config
+    slug: null,
     route: 'ops/readiness',
     day: 0,               // 0 today, 1 tomorrow
     filter: 'need',       // need | all
     selected: null,       // mrn+time of selected row
     readiness: null,      // {generatedAt, days:{iso:[rows]}}
     readinessErr: null,
-    actor: sessionStorage.getItem('actor') || '',
+    signin: { step: 'email', email: '', requestId: '', expiresAt: '', msg: '', busy: false },
   };
 
   // tiny DOM helper: text is always set as text, never parsed as HTML
@@ -35,24 +38,42 @@
   const setConn = (s, text) => { $('connDot').dataset.state = s; $('connText').textContent = text; };
   const hhmm = (d) => `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 
+  // ---------- session ----------
+  function loadSession() {
+    try {
+      const x = JSON.parse(sessionStorage.getItem('session') || 'null');
+      return x && x.token && Date.parse(x.expiresAt) > Date.now() ? x : null;
+    } catch (e) { return null; }
+  }
+  function saveSession(x) { sessionStorage.setItem('session', JSON.stringify(x)); }
+  function signOut(msg) {
+    sessionStorage.removeItem('session'); state.session = null; state.clinic = null; state.clinics = []; state.slug = null;
+    state.signin = { step: 'email', email: state.signin.email, requestId: '', expiresAt: '', msg: msg || '', busy: false };
+    renderSignIn();
+  }
+  // A read that comes back 401 means the session ended (expired, or Brendan removed the person): back to sign-in.
+  async function read(slug, files) {
+    try { return await D.read(state.session.token, slug, files); }
+    catch (e) { if (e.kind === 'signin' && state.session) signOut('Your sign-in ran out. Sign in again.'); throw e; }
+  }
+
   // ---------- clinics ----------
   async function loadClinics() {
-    if (!INDEX) return renderSetup();
-    let index;
-    try { index = await D.getJSON(INDEX); }
-    catch (e) { console.warn('index read failed', e.kind, e.message); setConn('soon', 'Not connected'); return renderSetup(D.explain(e)); }
-    const list = Array.isArray(index.clinics) ? index.clinics : [];
-    // Folders this user can't read come back 403 and are dropped. Sharing does the authorization.
-    const got = await Promise.all(list.map((c) => D.getJSON(c.config).then((config) => ({ slug: c.slug, config }), (e) => { console.info('clinic hidden', c.slug, e.kind); return null; })));
+    const slugs = (state.session.clinics || []).filter((x) => /^[a-z0-9-]+$/.test(x));
+    if (!slugs.length) { setConn('soon', 'No clinic access'); return renderNotice('No clinic on your account yet', 'Ask Brendan to add your clinic to your account.'); }
+    $('clinic').textContent = 'Loading clinics';
+    const got = await Promise.all(slugs.map((slug) => read(slug, ['config']).then((r) => ({ slug, config: (r.files && r.files.config) || { displayName: slug } }),
+      (e) => { console.info('clinic not loaded', slug, e.kind); return e.kind === 'signin' ? 'stop' : null; })));
+    if (got.includes('stop')) return;
     state.clinics = got.filter(Boolean);
-    if (!state.clinics.length) { setConn('soon', 'No clinic access'); return renderSetup("You don't have access to any clinic folder yet. Ask Brendan to share your clinic's folder with you."); }
+    if (!state.clinics.length) { setConn('soon', 'Not connected'); return renderNotice("Couldn't load your clinic", "The clinic data service didn't answer. Try again in a minute."); }
     const last = sessionStorage.getItem('clinic');
     pickClinic((state.clinics.find((c) => c.slug === last) || state.clinics[0]).slug);
   }
 
   function pickClinic(slug) {
     const c = state.clinics.find((x) => x.slug === slug);
-    state.clinic = c.config; state.readiness = null; state.readinessErr = null; state.selected = null;
+    state.clinic = c.config; state.slug = slug; state.readiness = null; state.readinessErr = null; state.selected = null;
     sessionStorage.setItem('clinic', slug);
     const box = $('clinic'); box.replaceChildren();
     if (state.clinics.length > 1) {
@@ -60,17 +81,24 @@
         state.clinics.map((x) => h('option', { value: x.slug, selected: x.slug === slug }, x.config.displayName || x.slug)));
       box.append('Clinic', sel);
     } else box.append(c.config.displayName || c.slug);
-    setConn('ok', 'Connected to OneDrive');
+    setConn('ok', 'Connected');
     loadReadiness();
     render();
   }
 
   // ---------- readiness ----------
   async function loadReadiness() {
-    const url = state.clinic && state.clinic.outputs && state.clinic.outputs.readiness;
-    if (!url || /^<.*>$/.test(url)) { state.readinessErr = 'Readiness isn\'t set up for this clinic yet.'; return render(); }
-    try { state.readiness = await D.getJSON(url); state.readinessErr = null; setConn('ok', `Updated ${hhmm(new Date())}`); }
-    catch (e) { console.warn('readiness read failed', e.kind, e.message); state.readinessErr = D.explain(e); setConn('soon', 'Last read failed'); }
+    const slug = state.slug;
+    try {
+      const r = await read(slug, ['readiness']);
+      if (slug !== state.slug) return;
+      state.readiness = r.files && r.files.readiness;
+      state.readinessErr = state.readiness ? null : "Readiness isn't set up for this clinic yet.";
+      setConn('ok', `Updated ${hhmm(new Date())}`);
+    } catch (e) {
+      if (e.kind === 'signin') return;
+      console.warn('readiness read failed', e.kind, e.message); state.readinessErr = D.explain(e); setConn('soon', 'Last read failed');
+    }
     render();
   }
   setInterval(() => { if (state.clinic && document.visibilityState === 'visible') loadReadiness(); }, POLL);
@@ -194,27 +222,110 @@
       h('div', { class: 'card empty' }, 'Consults in flight, patient journey, demand and the TMS and ESK panels come in a later phase. Ops and Binder work now.'));
   }
 
-  function renderSetup(reason) {
-    $('clinic').textContent = 'No clinic';
+  // ---------- sign in ----------
+  // Step 1: work email -> Auth flow sends a code to the person's Teams (Flow bot card with a one-tap Sign in button).
+  // Step 2: type or paste the code, or tap the button in Teams, which opens #signin=<requestId>.<code>.
+  function railSignedOut() { $('clinic').textContent = ''; $('navWrap').hidden = true; renderSigned(); }
+  function renderNotice(title, text) {
     const page = $('page'); page.replaceChildren();
-    page.append(h('div', { class: 'card setup' }, h('h1', {}, 'Not connected yet'),
-      h('p', {}, reason || "This app isn't linked to the clinic folders yet. Brendan sets that up once; nothing to do on your side."),
-      h('div', { class: 'actions' }, h('a', { class: 'btn primary', href: '?demo=1' }, 'Open the demo'), h('a', { class: 'btn ghost', href: 'probe.html' }, 'Test a OneDrive link'))));
+    page.append(h('div', { class: 'card setup' }, h('h1', {}, title), h('p', {}, text),
+      h('div', { class: 'actions' }, h('button', { class: 'btn ghost', onclick: () => location.reload() }, 'Try again'))));
   }
+  function renderSignIn() {
+    railSignedOut();
+    const page = $('page'); page.replaceChildren();
+    const si = state.signin;
+    if (!DEMO && !SH.authUrl) {
+      return page.append(h('div', { class: 'card setup' }, h('h1', {}, 'Not connected yet'),
+        h('p', {}, "This app isn't linked to its sign-in flow yet. Brendan sets that up once; nothing to do on your side."),
+        h('div', { class: 'actions' }, h('a', { class: 'btn primary', href: '?demo=1' }, 'Open the demo'))));
+    }
+    if (si.step === 'link') return page.append(h('div', { class: 'card setup' }, h('h1', {}, 'Signing you in')));
+    const msg = si.msg ? h('p', { class: 'msg', role: 'alert' }, si.msg) : null;
+    if (si.step === 'email') {
+      const input = h('input', { id: 'siEmail', type: 'email', inputmode: 'email', autocomplete: 'username', maxlength: '120', value: si.email,
+        placeholder: SH.emailDomain ? `you@${SH.emailDomain}` : 'Work email', 'aria-describedby': 'siHelp' });
+      page.append(h('form', { class: 'card setup signin', novalidate: true, onsubmit: (e) => { e.preventDefault(); sendCode(input.value); } },
+        h('h1', {}, 'Sign in'), h('p', { id: 'siHelp' }, "Enter your work email. We'll send a code to your Teams."),
+        h('label', { for: 'siEmail' }, 'Work email'), input, msg,
+        h('button', { class: 'btn primary wide', type: 'submit', disabled: si.busy }, si.busy ? 'Sending' : 'Send my code')));
+      input.focus();
+      return;
+    }
+    const until = si.expiresAt ? hhmm(new Date(si.expiresAt)) : '';
+    const code = h('input', { id: 'siCode', inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: '12', placeholder: '6-digit code', 'aria-describedby': 'siHelp',
+      oninput: (e) => { if (digits(e.target.value).length === 6) checkCode(e.target.value); } });
+    page.append(h('form', { class: 'card setup signin', novalidate: true, onsubmit: (e) => { e.preventDefault(); checkCode(code.value); } },
+      h('h1', {}, 'Check Teams'),
+      h('p', { id: 'siHelp' }, `If ${si.email} has access, a message from Workflows has your code${until ? `, good until ${until}` : ''}. Tap Sign in on that message, or type the code here.`),
+      h('label', { for: 'siCode' }, 'Code'), code, msg,
+      h('button', { class: 'btn primary wide', type: 'submit', disabled: si.busy }, si.busy ? 'Checking' : 'Sign in'),
+      h('div', { class: 'actions' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => sendCode(si.email) }, 'Send a new code'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { state.signin = { step: 'email', email: si.email, msg: '' }; renderSignIn(); } }, 'Use a different email')),
+      h('p', { class: 'note' }, 'Nothing after a minute? Your email may not have access yet. Ask Brendan to add you.')));
+    if (DEMO) page.append(demoCard());
+    code.focus();
+  }
+  // Demo only: what the Teams message looks like, with a working one-tap link.
+  function demoCard() {
+    return h('div', { class: 'card teams', 'aria-label': 'Example Teams message' },
+      h('div', { class: 'meta' }, 'Demo: the message that arrives in Teams, from Workflows'),
+      h('div', { class: 'tc-title' }, 'MHS Clinic sign-in'),
+      h('div', { class: 'tc-code' }, '123 456'),
+      h('div', { class: 'meta' }, "Good for 10 minutes. If you didn't ask for this, ignore it."),
+      h('a', { class: 'btn primary wide', href: `?demo=1#signin=${self.Demo.requestId}.${self.Demo.code}`, target: '_blank', rel: 'noopener' }, 'Sign in to MHS Clinic'));
+  }
+  const digits = (v) => String(v || '').replace(/\D/g, '');
+  function normEmail(v) {
+    v = String(v || '').trim().toLowerCase();
+    if (v && !v.includes('@') && SH.emailDomain) v += '@' + SH.emailDomain;
+    return /^[^@\s'"]+@[^@\s'"]+\.[a-z]{2,}$/.test(v) ? v : '';
+  }
+  async function sendCode(raw) {
+    const email = normEmail(raw);
+    if (!email) { Object.assign(state.signin, { step: 'email', email: String(raw || ''), msg: `Enter your work email, like name@${SH.emailDomain || 'example.com'}.` }); return renderSignIn(); }
+    Object.assign(state.signin, { email, busy: true, msg: '' }); renderSignIn();
+    try {
+      const r = await D.start(email);
+      state.signin = { step: 'code', email, requestId: r.requestId, expiresAt: r.expiresAt, msg: '', busy: false };
+    } catch (e) {
+      console.warn('start failed', e.kind, e.message);
+      Object.assign(state.signin, { busy: false, msg: D.explain(e) });
+    }
+    renderSignIn();
+  }
+  async function checkCode(raw) {
+    const code = digits(raw);
+    if (state.signin.busy) return;
+    if (code.length !== 6) { state.signin.msg = 'The code is 6 digits.'; return renderSignIn(); }
+    Object.assign(state.signin, { busy: true, msg: '' }); renderSignIn();
+    try { signedIn(await D.verify(state.signin.requestId, code), true); }
+    catch (e) {
+      const b = e.body || {};
+      const msg = b.reason === 'wrong' ? `That code doesn't match. ${b.triesLeft} ${b.triesLeft === 1 ? 'try' : 'tries'} left.`
+        : b.reason === 'locked' ? 'Too many tries. Send a new code.'
+        : b.reason === 'expired' ? 'That code has run out. Send a new one.' : D.explain(e);
+      Object.assign(state.signin, { busy: false, msg });
+      renderSignIn();
+    }
+  }
+  function signedIn(r, broadcast) {
+    const sess = { token: r.token, name: r.name, email: r.email, role: r.role, clinics: r.clinics || [], expiresAt: r.expiresAt };
+    saveSession(sess); D.markSignedIn();
+    // tell the tab that asked for the code (the Teams button opens a new tab)
+    if (broadcast && self.BroadcastChannel) try { new BroadcastChannel(CHANNEL).postMessage(sess); } catch (e) { /* older browser */ }
+    start(sess, true);
+  }
+  if (self.BroadcastChannel) new BroadcastChannel(CHANNEL).onmessage = (ev) => {
+    if (!state.session && ev.data && ev.data.token) { saveSession(ev.data); start(ev.data, true); toast('Signed in from Teams'); }
+  };
 
   // ---------- frame ----------
   function renderSigned() {
     const s = $('signed'); s.replaceChildren();
-    s.append(state.actor ? `Signed as ${state.actor} (not a verified sign-in) ` : 'No name set. ', h('button', { onclick: askActor }, state.actor ? 'Change' : 'Set your name'));
+    if (state.session) s.append(`Signed in as ${state.session.name} · `, h('button', { onclick: () => signOut('Signed out.') }, 'Sign out'));
   }
-  function askActor() {
-    const dlg = $('actorDlg'); $('actorName').value = state.actor; dlg.showModal();
-  }
-  $('actorForm').addEventListener('submit', () => {
-    const v = $('actorName').value.trim().slice(0, 40);
-    if (!v) return;
-    state.actor = v; sessionStorage.setItem('actor', v); renderSigned(); toast(`Signed as ${v}`);
-  });
 
   function render() {
     if (!state.clinic) return;
@@ -230,10 +341,32 @@
   }
   function go(route) { state.route = route === 'ops' ? 'ops/readiness' : route; history.replaceState(null, '', '#' + state.route); render(); $('page').focus({ preventScroll: true }); }
   document.querySelectorAll('.rail [data-route]').forEach((b) => b.addEventListener('click', () => go(b.dataset.route)));
-  const fromHash = location.hash.slice(1); if (/^(ops(\/readiness)?|clinicians|binder)$/.test(fromHash)) state.route = fromHash === 'ops' ? 'ops/readiness' : fromHash;
+  const fromHash = location.hash.startsWith('#signin=') ? '' : location.hash.slice(1); if (/^(ops(\/readiness)?|clinicians|binder)$/.test(fromHash)) state.route = fromHash === 'ops' ? 'ops/readiness' : fromHash;
+
+  function start(sess, fresh) {
+    state.session = sess;
+    $('navWrap').hidden = false;
+    if (fresh && !/^#(ops|clinicians|binder)/.test(location.hash) && /clinician/i.test(sess.role || '')) state.route = 'clinicians';
+    renderSigned();
+    loadClinics();
+  }
 
   if (DEMO) $('demoBanner').hidden = false;
-  renderSigned();
-  loadClinics();
+  // One-tap link from the Teams card: #signin=<requestId>.<code>. Strip it from the address bar before anything else.
+  const link = location.hash.match(/^#signin=([A-Za-z0-9-]{1,64})\.(\d{6})$/);
+  if (link) {
+    history.replaceState(null, '', location.pathname + location.search);
+    state.signin = { step: 'link', email: '', requestId: link[1], msg: '', busy: false };
+    renderSignIn();
+    D.verify(link[1], link[2]).then((r) => signedIn(r, true), (e) => {
+      const b = e.body || {};
+      state.signin = { step: 'email', email: '', busy: false,
+        msg: b.reason ? 'That sign-in link has run out or was already used. Send a new code.' : D.explain(e) };
+      renderSignIn();
+    });
+  } else {
+    const sess = loadSession();
+    if (sess) start(sess); else renderSignIn();
+  }
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch((e) => console.warn('sw', e));
 })();

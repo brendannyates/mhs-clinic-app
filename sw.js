@@ -1,6 +1,6 @@
 // Caches the shell only. Patient data is never cached: this worker ignores every request that isn't one of the
 // shell files below, so OneDrive and Power Automate traffic goes straight to the network and is never stored.
-const VERSION = 'shell-v1';
+const VERSION = 'shell-v2';
 const SHELL = ['./', 'index.html', 'probe.html', 'css/app.css', 'js/shell-config.js', 'js/core.js', 'js/data.js', 'js/demo.js', 'js/app.js', 'js/probe.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 const SCOPE = new URL('./', self.location).href;

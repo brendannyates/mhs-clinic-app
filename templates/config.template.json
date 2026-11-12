@@ -6,21 +6,5 @@
   "hours": "",
   "directory": [{ "role": "", "name": "", "ext": "", "teams": "" }],
   "binder": [{ "title": "", "url": "", "group": "SOP|Patient resource|Forms" }],
-  "outputs": {
-    "readiness": "<share-url>",
-    "benefits": "<share-url>",
-    "schedule": "<share-url>",
-    "panelTms": "<share-url>",
-    "panelEsk": "<share-url>",
-    "consults": "<share-url>",
-    "utilization": "<share-url>",
-    "calls": "<share-url>"
-  },
-  "flows": {
-    "edits": "<http-trigger-url>",
-    "arrivals": "<http-trigger-url>",
-    "soharLookup": "<http-trigger-url>"
-  },
-  "secret": "<shared-secret>",
   "teamsChats": { "frontDesk": "", "tmsTechs": "", "eskTechs": "" }
 }
